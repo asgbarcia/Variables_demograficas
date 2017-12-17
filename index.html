@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />	
+		<title>Variables demográficas de municipios de España</title>
+		<link rel="shortcut icon" type="image/x-icon" href="images/ico.png" />
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" 
+			integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ==" crossorigin=""/>		
+		<link rel="stylesheet" href="plugins/L.Control.HtmlLegend.css" />	
+		<link rel="stylesheet" href="plugins/Control.FullScreen.css">
+		<link rel="stylesheet" href="plugins/Control.MiniMap.css" />
+		<link rel="stylesheet" href="https://unpkg.com/esri-leaflet-geocoder@2.2.8/dist/esri-leaflet-geocoder.css">
+		<link rel="stylesheet" href="plugins/L.Control.Sidebar.css">
+		<style>
+						body {
+						padding: 0;
+						margin: 0;
+						}
+						html, body, #map {
+						height: 100%;
+						}
+			.info {
+			padding: 6px 8px;
+			font: 14px/16px Arial, Helvetica, sans-serif;
+			background: white;
+			background: rgba(255,255,255,0.8);
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 5px;
+			}
+			.info h2 {
+			margin: 0 0 5px;
+			color: #777;
+			}
+			h3 { 
+			display: block;
+			font-size: 1.4em;
+			margin-top: 0.0em;
+			margin-bottom: 0.0em;
+			margin-left: 0;
+			margin-right: 0;
+			font-weight: bold;
+			}
+			.legend {
+			 line-height: 18px;
+			 color: #555;
+			}
+			.legend i {
+			 width: 18px;
+			 height: 18px;
+			 float: left;
+			 margin-right: 8px;
+			 opacity: 0.7;
+			}
+			.label {
+			padding: 5px 20px;
+			font: 14px/16px Arial, Helvetica, sans-serif;
+			background: white;
+			background: rgba(255,255,255,0.8);
+			box-shadow: 0 0 15px rgba(0,0,0,0.2);
+			border-radius: 7px;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+			integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log==" crossorigin=""></script>
+		<script src="plugins/L.Control.HtmlLegend.min.js"></script>
+		<script src="plugins/Control.FullScreen.js"></script>
+		<script src="plugins/Control.MiniMap.js" type="text/javascript"></script> 
+		<script src="https://unpkg.com/esri-leaflet@2.1.1"></script>
+		<script src="https://unpkg.com/esri-leaflet-geocoder@2.2.8"></script>
+		<script src="plugins/L.Control.Sidebar.js"></script>
+		<script src="plugins/L.Control.Button.js"></script>
+		<script type="text/javascript" src="tabla.js"></script>
+		<script type="text/javascript" src="comunidades.js"></script>
+		<script type="text/javascript" src="provincias.js"></script>
+			<div id="sidebar"  style="width:250px; ">
+				<h2>INSTRUCCIONES DE USO</h2>
+				<p><b><img src="images/capas.png" width="16%" align="center"></img> Selecionar el mapa de la variable que desea visualizar  </b></p>
+				<p><b><img src="images/dedo.png" width="12%" align="center"></img>  Deslizar sobre el mapa o pulsar para ver datos </b></p>
+				<p><b><img src="images/mover.png" width="12%" align="center"></img>  Pulsar y mantener para desplazar el mapa  </b></p>				
+				<p><b><img src="images/mas.png" width="16%" align="center"></img> Pulsar para acercar el mapa </b></p>			
+				<p><b><img src="images/menos.png" width="16%" align="center"></img> Pulsar para alejar el mapa </b></p>
+				<p><b><img src="images/full.png" width="16%" align="center"></img> Pulsar para ver en pantalla completa </b></p>
+				<p><b><img src="images/search.png" width="16%" align="center"></img> Introducir el município (localidad) que desea buscar </b></p>
+				<p><b><img src="images/minimapa.png" width="16%" align="center"></img> Pulsar para minimizar el mapa de situación </b></p>
+				<p><b><img src="images/leyenda.png" width="16%" align="center"></img> Pulsar para minimizar la leyenda </b></p> <br>	
+					<img src="images/PastedGraphic-11.png" width="100%" align="center"></img>				
+				<ul>
+					<li><a href="https://www.fundacionmatrix.es">Fundación Matrix</a></li>
+				</ul>
+			</div>				
+		<div id="map"></div>
+			<div id="botonera"></div>
+			<button id="helpbutton" role="button" class="botoninfo"><img src="images/info.png" width="30" height="35"></button>
+			<script>
+			var map = L.map('map', {
+					center: [40, -8],
+					zoom: 6,
+					minZoom: 3,
+					maxZoom: 10,
+					maxBounds: [
+						[20, -50],
+						[50, 50]
+						],
+					});
+			var Mapa_fondo = L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/ {z}/{x}/{y}.png', { maxZoom: 18, opacity: 0.4, attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> | © <a href="https://www.fundacionmatrix.es">fundacionmatrix.es</a>'}).addTo(map);					
+			var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: 'Map data &copy'
+			}).addTo(map);
+			var osm1 = L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			opacity: 0,
+			attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+			})
+			var osm2 = new L.TileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+			minZoom: 0, 
+			maxZoom: 13,
+			});
+			//Población
+			function getColor1(a) {
+			return a > 1000000 ? '#99000d' :
+			a > 500000 ? '#cb181d' :
+			a > 100000 ? '#ef3b2c' :
+			a > 10000 ? '#fb6a4a' :
+			a > 500 ? '#fc9272' :
+			a > 100 ? '#fcbba1' :
+			a > 50 ? '#fee0d2' :
+			'#fff5f0';
+			}
+			function style1(feature) {
+			return {
+			fillColor: getColor1(feature.properties.TOTAL_16),
+			weight: 1,
+			opacity: 0.7,
+			color: '#7B7D7D',
+			dashArray: '1',
+			fillOpacity: 0.5
+			};
+			}
+			function popup1(feature, layer) {
+			if (feature.properties && feature.properties.NAMEUNIT) {
+			layer.bindPopup("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Población: "+feature.properties.TOTAL_16  );
+			layer.bindTooltip("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Población: "+feature.properties.TOTAL_16,{direction:"top",sticky:true, permanente:true,offset:[0,-5]});			
+			}
+			}
+			geojson1 = L.geoJson(tabla, {
+			style: style1,
+			onEachFeature: popup1
+			})
+					//Densidad
+					function getColor2(a) {
+					 return a > 10000 ? '#67000d' :
+					 a > 5000 ? '#a50f15' :
+					 a > 1000 ? '#cb181d' :					 
+					 a > 500 ? '#ef3b2c' :
+					 a > 250 ? '#fb6a4a' :
+					 a > 100 ? '#fc9272' :
+					 a > 50 ? '#fcbba1' :
+					 a > 10 ? '#fee0d2' :
+					 '#fff5f0';
+					}
+					function style2(feature) {
+					return {
+					fillColor: getColor2(feature.properties.DENSI),
+					weight: 1,
+					opacity: 0.7,
+					color: '#7B7D7D',
+					dashArray: '1',
+					fillOpacity: 0.5
+					};
+					}
+					function popup2(feature, layer) {
+					if (feature.properties && feature.properties.NAMEUNIT) {
+					layer.bindPopup("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Población: "+feature.properties.TOTAL_16+" habitantes"+"<br>"+"Superficie: "+feature.properties.SUPERF+" km<sup>2</sup>" +"<br>"+"Densidad: "+feature.properties.DENSI+" habitantes/km<sup>2</sup>" );
+					layer.bindTooltip("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Población: "+feature.properties.TOTAL_16+" habitantes"+"<br>"+"Superficie: "+feature.properties.SUPERF+" km<sup>2</sup>" +"<br>"+"Densidad: "+feature.properties.DENSI+" habitantes/km<sup>2</sup>",{direction:"top",sticky:true, permanente:true,offset:[0,-5]} );
+					}
+					}
+					geojson2 = L.geoJson(tabla, {
+					style: style2,
+					onEachFeature: popup2
+					})												
+							//Nacimientos
+							function getColor3(a) {
+							return a > 50000 ? '#084594' :
+							a > 1000 ? '#2171b5' :
+							a > 500 ? '#4292c6' :
+							a > 100 ? '#6baed6' :
+							a > 50 ? '#9ecae1' :
+							a > 10 ? '#c6dbef' :
+							a > 1 ? '#deebf7' :
+							'#f7fbff';
+							}
+							function style3(feature) {
+							return {
+							fillColor: getColor3(feature.properties.NACIM_15),
+							weight: 1,
+							opacity: 0.7,
+							color: '#7B7D7D',
+							dashArray: '1',
+							fillOpacity: 0.5
+							};
+							}
+							function popup3(feature, layer) {
+							if (feature.properties && feature.properties.NAMEUNIT) {
+							layer.bindPopup("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Nacimientos: "+feature.properties.NACIM_15);
+							layer.bindTooltip("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Nacimientos: "+feature.properties.NACIM_15, {direction:"top",sticky:true, permanente:true,offset:[0,-5]});							
+							}
+							}
+							geojson3 = L.geoJson(tabla, {
+							style: style3,
+							onEachFeature: popup3
+							})			
+									//Defunciones
+									function getColor4(a) {
+									 return a > 50000 ? '#084594' :
+									 a > 1000 ? '#2171b5' :
+									 a > 500 ? '#4292c6' :
+									 a > 100 ? '#6baed6' :
+									 a > 50 ? '#9ecae1' :
+									 a > 10 ? '#c6dbef' :
+									 a > 1 ? '#deebf7' :
+									 '#f7fbff';
+									}
+									function style4(feature) {
+									return {
+									fillColor: getColor4(feature.properties.DEFUNC_15),
+									weight: 1,
+									opacity: 0.7,
+									color: '#7B7D7D',
+									dashArray: '1',
+									fillOpacity: 0.5
+									};
+									}
+									function popup4(feature, layer) {
+									if (feature.properties && feature.properties.NAMEUNIT) {
+									layer.bindPopup("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Defunciones: "+feature.properties.DEFUNC_15);
+									layer.bindTooltip("<h2>"+feature.properties.NAMEUNIT+" ("+feature.properties.PROV+") "+"</h2>"+"Defunciones: "+feature.properties.DEFUNC_15,{direction:"top",sticky:true, permanente:true,offset:[0,-5]});
+									}
+									}
+									geojson4 = L.geoJson(tabla, {
+									style: style4,
+									onEachFeature: popup4
+									})
+			var fsControl = new L.Control.FullScreen();
+				map.addControl(fsControl);
+				map.on('enterFullscreen', function(){
+				if(window.console) window.console.log('enterFullscreen');
+				});
+				map.on('exitFullscreen', function(){
+				if(window.console) window.console.log('exitFullscreen');
+				});
+			var miniMap = new L.Control.MiniMap(osm2, { toggleDisplay: true, position:"bottomleft" }).addTo(map); 
+				var searchControl = L.esri.Geocoding.geosearch().addTo(map);
+				var results = L.layerGroup().addTo(map);
+				searchControl.on("results", function(tabla) {
+					results.clearLayers();
+					for (var i = tabla.results.length - 1; i >= 0; i--) {
+						results.addLayer(L.marker(tabla.results[i].latlng));
+					}
+				});	
+				var title = L.control();
+				title.onAdd = function (map) {
+				var div = L.DomUtil.create('div', 'info');
+				 div.innerHTML +=
+				 '<a href="https://www.fundacionmatrix.es"><img src="images/PastedGraphic-11.png" width="90%" ></img></a>';
+				 return div;
+				};
+				title.addTo(map);
+			var comunidades = L.geoJson(comunidades, {
+				color: "#17202A", 
+				weight: 2,
+				opacity: 1,
+				fillOpacity: 0,			
+				}).addTo(map);
+			var provincias = L.geoJson(provincias, {
+				color: "#424242", 
+				weight: 1,
+				opacity: 1,
+				fillOpacity: 0,
+				}).addTo(map);				
+				var mapa1 = L.layerGroup([geojson1,]);
+				var mapa2 = L.layerGroup([geojson2,]);
+				var mapa3 = L.layerGroup([geojson3,]);
+				var mapa4 = L.layerGroup([geojson4,]);						
+				var baseLayers = {
+					"Población (2016)": mapa1,
+					"Densidad (2016)": mapa2,
+					"Nacimientos (2015)": mapa3,
+					"Defunciones (2015)": mapa4,
+					};
+				var overlays = {
+					"Mostrar mapa": osm,
+					"Mostrar Comunidades Autónomas": comunidades,
+					"Mostrar provincias": provincias,
+					};
+				// leyenda mapa4
+				var htmlLegend4 = L.control.htmllegend({
+						position: 'bottomright',
+						legends: [{
+							name:"<h3>"+ 'Defunciones (2015)'+"<\h3>",
+							style: style4,
+							layer: mapa4,
+							elements: [{
+								label:"<h3>"+  'Número'+"<\h3>",html: '',style: {'background-color': 'write','width': '0px','height': '0px'}}, {
+								label:"<h3>"+  '0 - 1'+"<\h3>",html: '',style: {'background-color': '#f7fbff','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '2 - 10'+"<\h3>",html: '',style: {'background-color': '#deebf7','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '11 - 50'+"<\h3>",html: '',style: {'background-color': '#c6dbef','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '51 - 100'+"<\h3>",html: '',style: {'background-color': '#9ecae1','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '101 - 500'+"<\h3>",html: '',style: {'background-color': '#6baed6','width': '14px','height': '14px'}}, {		
+								label:"<h3>"+  '501 - 1.000'+"<\h3>",html: '',style: {'background-color': '#4292c6','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '1.001 - 50.000'+"<\h3>",html: '',style: {'background-color': '#2171b5','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '> 50.000'+"<\h3>",html: '',style: {'background-color': '#084594','width': '14px','height': '14px'},
+							}]}],
+							collapseSimple: true,  // if true, legend entries that are from a simple renderer will use compact presentation
+							detectStretched: true,  // if true, will test to see if legend entries look stretched.  These are usually in sets of 3 with the middle element having no label.
+							collapsedOnInit: false,  // if true, legends will be collapsed when a new instance is initialized.
+							defaultOpacity: 0.5, // default opacity for layers in specified in legends.
+							visibleIcon: '',// 'leaflet-html-legend-icon-eye',  // css class for the visible icon on opacity slider
+							hiddenIcon: '',//'leaflet-html-legend-icon-eye-slash',  // css class for the hidden icon on opacity slider
+							toggleIcon:'',// 'leaflet-html-legend-icon-eye-slash'  // css class for the icon on visibility toggle button
+							});
+						map.addControl(htmlLegend4);
+				// leyenda mapa3
+				var htmlLegend3 = L.control.htmllegend({
+						position: 'bottomright',
+						legends: [{
+							name: "<h3>"+'Nacimientos (2015)'+"<\h3>",
+							style: style3,
+							layer: mapa3,
+							elements: [{
+								label:"<h3>"+  'Número'+"<\h3>",html: '',style: {'background-color': 'write','width': '0px','height': '0px'}}, {
+								label:"<h3>"+  '0 - 1'+"<\h3>",html: '',style: {'background-color': '#f7fbff','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '2 - 10'+"<\h3>",html: '',style: {'background-color': '#deebf7','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '11 - 50'+"<\h3>",html: '',style: {'background-color': '#c6dbef','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '51 - 100'+"<\h3>",html: '',style: {'background-color': '#9ecae1','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '101 - 500'+"<\h3>",html: '',style: {'background-color': '#6baed6','width': '14px','height': '14px'}}, {		
+								label:"<h3>"+  '501 - 1.000'+"<\h3>",html: '',style: {'background-color': '#4292c6','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '1.001 - 50.000'+"<\h3>",html: '',style: {'background-color': '#2171b5','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '> 50.000'+"<\h3>",html: '',style: {'background-color': '#084594','width': '14px','height': '14px'},
+							}]}],
+							collapseSimple: true,  // if true, legend entries that are from a simple renderer will use compact presentation
+							detectStretched: true,  // if true, will test to see if legend entries look stretched.  These are usually in sets of 3 with the middle element having no label.
+							collapsedOnInit: false,  // if true, legends will be collapsed when a new instance is initialized.
+							defaultOpacity: 0.5, // default opacity for layers in specified in legends.
+							visibleIcon: '',// 'leaflet-html-legend-icon-eye',  // css class for the visible icon on opacity slider
+							hiddenIcon: '',//'leaflet-html-legend-icon-eye-slash',  // css class for the hidden icon on opacity slider
+							toggleIcon:'',// 'leaflet-html-legend-icon-eye-slash'  // css class for the icon on visibility toggle button
+							});
+						map.addControl(htmlLegend3);
+				// leyenda mapa2		
+				var htmlLegend2 = L.control.htmllegend({
+						position: 'bottomright',
+						legends: [{
+							name: "<h3>"+'Densidad (2016)'+"<\h3>",
+							style: style2,
+							layer: mapa2,
+							elements: [{
+								label:"<h3>"+  'habitantes/km<sup>2</sup>'+"<\h3>",html: '',style: {'background-color': 'write','width': '0px','height': '0px'}}, {
+								label:"<h3>"+  '0 - 10'+"<\h3>",html: '',style: {'background-color': '#fff5f0','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '10,1 - 50'+"<\h3>",html: '',style: {'background-color': '#fee0d2','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '50,1 - 100'+"<\h3>",html: '',style: {'background-color': '#fcbba1','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '100,1 - 250'+"<\h3>",html: '',style: {'background-color': '#fc9272','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '250,1 - 500'+"<\h3>",html: '',style: {'background-color': '#fb6a4a','width': '14px','height': '14px'}}, {		
+								label:"<h3>"+  '500,1 - 1.000'+"<\h3>",html: '',style: {'background-color': '#ef3b2c','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '1.000,1 - 5.000'+"<\h3>",html: '',style: {'background-color': '#cb181d','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '5.000,1 - 10.000'+"<\h3>",html: '',style: {'background-color': '#a50f15','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '> 10.000'+"<\h3>",html: '',style: {'background-color': '#67000d','width': '14px','height': '14px'},
+								}]}],
+							collapseSimple: true,  // if true, legend entries that are from a simple renderer will use compact presentation
+							detectStretched: true,  // if true, will test to see if legend entries look stretched.  These are usually in sets of 3 with the middle element having no label.
+							collapsedOnInit: false,  // if true, legends will be collapsed when a new instance is initialized.
+							defaultOpacity: 0.5, // default opacity for layers in specified in legends.
+							visibleIcon: '',// 'leaflet-html-legend-icon-eye',  // css class for the visible icon on opacity slider
+							hiddenIcon: '',//'leaflet-html-legend-icon-eye-slash',  // css class for the hidden icon on opacity slider
+							toggleIcon:'',// 'leaflet-html-legend-icon-eye-slash'  // css class for the icon on visibility toggle button
+							});
+						map.addControl(htmlLegend2);
+				// leyenda mapa1
+				var htmlLegend1 = L.control.htmllegend({
+						position: 'bottomright',
+						legends: [{
+							name: "<h3>"+ 'Población (2016)'+"<\h3>",
+							style: style1,
+							layer: mapa1,
+							elements: [{
+								label:"<h3>"+  'Número de habitantes'+"<\h3>",html: '',style: {'background-color': 'write','width': '0px','height': '0px'}}, {
+								label:"<h3>"+  '0 - 50'+"<\h3>",html: '',style: {'background-color': '#fff5f0','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '51 - 100'+"<\h3>",html: '',style: {'background-color': '#fee0d2','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '101 - 500'+"<\h3>",html: '',style: {'background-color': '#fcbba1','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '501 - 1.000'+"<\h3>",html: '',style: {'background-color': '#fc9272','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '1.001 - 100.000'+"<\h3>",html: '',style: {'background-color': '#fb6a4a','width': '14px','height': '14px'}}, {		
+								label:"<h3>"+  '100.001 - 500.000'+"<\h3>",html: '',style: {'background-color': '#ef3b2c','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '500.001 - 1.000.000'+"<\h3>",html: '',style: {'background-color': '#cb181d','width': '14px','height': '14px'}}, {
+								label:"<h3>"+  '> 1.000.000'+"<\h3>",html: '',style: {'background-color': '#99000d','width': '14px','height': '14px'},
+							}]}],
+							collapseSimple: true,  // if true, legend entries that are from a simple renderer will use compact presentation
+							detectStretched: true,  // if true, will test to see if legend entries look stretched.  These are usually in sets of 3 with the middle element having no label.
+							collapsedOnInit: false,  // if true, legends will be collapsed when a new instance is initialized.
+							defaultOpacity: 0.5, // default opacity for layers in specified in legends.
+							visibleIcon: '',// 'leaflet-html-legend-icon-eye',  // css class for the visible icon on opacity slider
+							hiddenIcon: '',//'leaflet-html-legend-icon-eye-slash',  // css class for the hidden icon on opacity slider
+							toggleIcon:'',// 'leaflet-html-legend-icon-eye-slash'  // css class for the icon on visibility toggle button
+							});
+						map.addControl(htmlLegend1);
+						L.control.layers(baseLayers, overlays,{collapsed:true,}).addTo(map);
+			var sidebar = L.control.sidebar('sidebar', { closeButton:true, position: 'left' });
+			map.addControl(sidebar);
+				sidebar.hide();			
+				sidebar.show();
+				sidebar.toggle();
+				var visible = sidebar.isVisible();
+			var button = new L.Control.Button(L.DomUtil.get('helpbutton'), { toggleButton: 'active' });
+				button.addTo(map);
+				button.on('click', function () {
+				 if (button.isToggled()) {
+						sidebar.hide();
+					} else {
+						sidebar.show();
+					}
+				});
+		</script>
+	</body>
+</html>
